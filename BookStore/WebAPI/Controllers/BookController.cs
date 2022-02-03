@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Mvc;
 using WebAPI.BookOperations.AddBook;
 using WebAPI.BookOperations.DeleteBook;
 using WebAPI.BookOperations.GetBooks;
@@ -6,6 +9,7 @@ using WebAPI.BookOperations.GetById;
 using WebAPI.BookOperations.UpdateBook;
 using WebAPI.DbOperations;
 using static WebAPI.BookOperations.AddBook.AddBookCommand;
+using static WebAPI.BookOperations.GetById.GetByIdQuery;
 
 namespace WebAPI.Controllers
 {
@@ -14,9 +18,11 @@ namespace WebAPI.Controllers
     public class BookController : ControllerBase
     {
         private readonly BookStoreDbContext _context;
-        public BookController(BookStoreDbContext context)
+        private readonly IMapper _mapper;
+        public BookController(BookStoreDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         //private static List<Book> BookList = new List<Book>()
@@ -51,7 +57,7 @@ namespace WebAPI.Controllers
         [HttpGet]
         public IActionResult GetBooks()
         {
-            GetBooksQuery query = new GetBooksQuery(_context);
+            GetBooksQuery query = new GetBooksQuery(_context, _mapper);
             var result = query.Handle();
             return Ok(result);
         }
@@ -59,8 +65,17 @@ namespace WebAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            GetByIdQuery query = new GetByIdQuery(_context);
-            var result = query.Handle(id);
+            GetByIdQuery query = new GetByIdQuery(_context, _mapper);
+            BooksDetailViewModel result;
+            try
+            {
+                query.BookId = id;
+                result = query.Handle();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
             return Ok(result);
         }
 
@@ -74,11 +89,23 @@ namespace WebAPI.Controllers
         [HttpPost]
         public IActionResult AddBook([FromBody] AddBookModel newBook)
         {
-            AddBookCommand command = new AddBookCommand(_context);
+            AddBookCommand command = new AddBookCommand(_context, _mapper);
             try
             {
                 command.Model = newBook;
-                command.Handle();
+
+                AddBookCommandValidator validator = new AddBookCommandValidator();
+                validator.ValidateAndThrow(command);
+                
+                //ValidationResult result = validator.Validate(command);
+                
+                //if (!result.IsValid)
+                //{
+                //    foreach (var error in result.Errors)
+                //        Console.WriteLine("Özellik" + error.PropertyName + " - Error Message: " + error.ErrorMessage);
+                //}
+                //else
+                //    command.Handle();
             }
             catch (Exception ex)
             {
@@ -96,7 +123,12 @@ namespace WebAPI.Controllers
             try
             {
                 command.Model = updatedBook;
-                command.Handle(id);
+                command.BookId = id;
+
+                UpdateBookCommandValidator validator = new UpdateBookCommandValidator();
+                validator.ValidateAndThrow(command);
+
+                command.Handle();
             }
             catch (Exception ex)
             {
@@ -113,7 +145,12 @@ namespace WebAPI.Controllers
 
             try
             {
-                command.Handle(id);
+                command.BookId = id;
+                
+                DeleteBookCommandValidator validator = new DeleteBookCommandValidator();
+                validator.ValidateAndThrow(command);
+
+                command.Handle();
             }
             catch (Exception ex)
             {

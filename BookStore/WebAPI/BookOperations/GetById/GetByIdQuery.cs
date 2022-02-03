@@ -1,4 +1,5 @@
-﻿using WebAPI.Common;
+﻿using AutoMapper;
+using WebAPI.Common;
 using WebAPI.DbOperations;
 
 namespace WebAPI.BookOperations.GetById
@@ -6,28 +7,34 @@ namespace WebAPI.BookOperations.GetById
     public class GetByIdQuery
     {
         private readonly BookStoreDbContext _context;
+        private readonly IMapper _mapper;
+        public int BookId { get; set; }
 
-        public GetByIdQuery(BookStoreDbContext context)
+        public GetByIdQuery(BookStoreDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        public BooksViewModel Handle(int id)
+        public BooksDetailViewModel Handle()
         {
-            var book = _context.Books.Where(book => book.Id == id).SingleOrDefault();
+            var book = _context.Books.Where(book => book.Id == BookId).SingleOrDefault();
+            if (book is null)
+                throw new InvalidOperationException("Kitap bulunamadı!");
 
-            BooksViewModel viewModel = new BooksViewModel()
-            {
-                Genre = ((GenreEnum)book.GenreId).ToString(),
-                PageCount = book.PageCount,
-                PublishDate = book.PublishDate.ToString("dd/MM/yyyy"),
-                Title = book.Title
-            };
+            BooksDetailViewModel viewModel = _mapper.Map<BooksDetailViewModel>(book);       
+            //new BooksDetailViewModel()
+            //{
+            //    Genre = ((GenreEnum)book.GenreId).ToString(),
+            //    PageCount = book.PageCount,
+            //    PublishDate = book.PublishDate.ToString("dd/MM/yyyy"),
+            //    Title = book.Title
+            //};
 
             return viewModel;
         }
 
-        public class BooksViewModel
+        public class BooksDetailViewModel
         {
             public string Title { get; set; }
             public int PageCount { get; set; }

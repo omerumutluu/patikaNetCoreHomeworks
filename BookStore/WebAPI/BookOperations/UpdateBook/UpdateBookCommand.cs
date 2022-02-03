@@ -5,6 +5,7 @@ namespace WebAPI.BookOperations.UpdateBook
     public class UpdateBookCommand
     {
         private readonly BookStoreDbContext _context;
+        public int BookId { get; set; }
         public UpdateBookView Model { get; set; }
 
         public UpdateBookCommand(BookStoreDbContext context)
@@ -12,20 +13,16 @@ namespace WebAPI.BookOperations.UpdateBook
             _context = context;
         }
 
-        public void Handle(int id)
+        public void Handle()
         {
-            var book = _context.Books.SingleOrDefault(book => book.Id == id);
+            var book = _context.Books.SingleOrDefault(book => book.Id == BookId);
             if (book is null)
-                throw new InvalidOperationException("Girilen id numarası ile eşleşen bir kitap bulunamadı.");
-
-            book = new Book();
+                throw new InvalidOperationException("Güncellenecek kitap bulunamadı.");
 
             book.GenreId = Model.GenreId != default ? Model.GenreId : book.GenreId;
             book.PageCount = Model.PageCount != default ? Model.PageCount : book.PageCount;
-            book.PublishDate = Model.PublishDate != default ? Model.PublishDate : book.PublishDate;
             book.Title = Model.Title != default ? Model.Title : book.Title;
 
-            _context.Books.Update(book);
             _context.SaveChanges();
         }
     }

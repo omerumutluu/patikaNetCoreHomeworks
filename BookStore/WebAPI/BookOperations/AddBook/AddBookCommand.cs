@@ -1,4 +1,5 @@
-﻿using WebAPI.DbOperations;
+﻿using AutoMapper;
+using WebAPI.DbOperations;
 
 namespace WebAPI.BookOperations.AddBook
 {
@@ -6,9 +7,11 @@ namespace WebAPI.BookOperations.AddBook
     {
         public AddBookModel Model { get; set; }
         private readonly BookStoreDbContext _context;
-        public AddBookCommand(BookStoreDbContext context)
+        private readonly IMapper _mapper;
+        public AddBookCommand(BookStoreDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public void Handle()
@@ -17,11 +20,11 @@ namespace WebAPI.BookOperations.AddBook
             if (book is not null)
                 throw new InvalidOperationException("Bu kitap ismi zaten başka bir kitap için mevcut");
 
-            book = new Book();
-            book.Title = Model.Title;
-            book.PublishDate = Model.PublishDate;
-            book.PageCount = Model.PageCount;
-            book.GenreId = Model.GenreId;
+            book = _mapper.Map<Book>(Model);      //new Book();
+            //book.Title = Model.Title;
+            //book.PublishDate = Model.PublishDate;
+            //book.PageCount = Model.PageCount;
+            //book.GenreId = Model.GenreId;
 
             _context.Books.Add(book);
             _context.SaveChanges();
