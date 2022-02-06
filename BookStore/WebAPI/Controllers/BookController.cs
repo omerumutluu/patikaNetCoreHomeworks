@@ -2,14 +2,14 @@
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using WebAPI.BookOperations.AddBook;
-using WebAPI.BookOperations.DeleteBook;
-using WebAPI.BookOperations.GetBooks;
-using WebAPI.BookOperations.GetById;
-using WebAPI.BookOperations.UpdateBook;
+using WebAPI.Application.BookOperations.Commands.AddBook;
+using WebAPI.Application.BookOperations.Commands.DeleteBook;
+using WebAPI.Application.BookOperations.Queries.GetBooks;
+using WebAPI.Application.BookOperations.Queries.GetById;
+using WebAPI.Application.BookOperations.Commands.UpdateBook;
 using WebAPI.DbOperations;
-using static WebAPI.BookOperations.AddBook.AddBookCommand;
-using static WebAPI.BookOperations.GetById.GetByIdQuery;
+using static WebAPI.Application.BookOperations.Commands.AddBook.AddBookCommand;
+using static WebAPI.Application.BookOperations.Queries.GetById.GetByIdQuery;
 
 namespace WebAPI.Controllers
 {
@@ -67,15 +67,14 @@ namespace WebAPI.Controllers
         {
             GetByIdQuery query = new GetByIdQuery(_context, _mapper);
             BooksDetailViewModel result;
-            try
-            {
-                query.BookId = id;
-                result = query.Handle();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+
+            query.BookId = id;
+            result = query.Handle();
+
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
             return Ok(result);
         }
 
@@ -90,28 +89,27 @@ namespace WebAPI.Controllers
         public IActionResult AddBook([FromBody] AddBookModel newBook)
         {
             AddBookCommand command = new AddBookCommand(_context, _mapper);
-            try
-            {
-                command.Model = newBook;
 
-                AddBookCommandValidator validator = new AddBookCommandValidator();
-                validator.ValidateAndThrow(command);
-                
-                //ValidationResult result = validator.Validate(command);
-                
-                //if (!result.IsValid)
-                //{
-                //    foreach (var error in result.Errors)
-                //        Console.WriteLine("Özellik" + error.PropertyName + " - Error Message: " + error.ErrorMessage);
-                //}
-                //else
-                //    command.Handle();
-            }
-            catch (Exception ex)
-            {
+            command.Model = newBook;
 
-                return BadRequest(ex.Message);
-            }
+            AddBookCommandValidator validator = new AddBookCommandValidator();
+            validator.ValidateAndThrow(command);
+
+            //ValidationResult result = validator.Validate(command);
+
+            //if (!result.IsValid)
+            //{
+            //    foreach (var error in result.Errors)
+            //        Console.WriteLine("Özellik" + error.PropertyName + " - Error Message: " + error.ErrorMessage);
+            //}
+            //else
+            //    command.Handle();
+            //}
+            //catch (Exception ex)
+            //{
+
+            //    return BadRequest(ex.Message);
+            //}
             return Ok();
         }
 
@@ -120,20 +118,18 @@ namespace WebAPI.Controllers
         {
             UpdateBookCommand command = new UpdateBookCommand(_context);
 
-            try
-            {
-                command.Model = updatedBook;
-                command.BookId = id;
+            command.Model = updatedBook;
+            command.BookId = id;
 
-                UpdateBookCommandValidator validator = new UpdateBookCommandValidator();
-                validator.ValidateAndThrow(command);
+            UpdateBookCommandValidator validator = new UpdateBookCommandValidator();
+            validator.ValidateAndThrow(command);
 
-                command.Handle();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            command.Handle();
+
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
 
             return Ok();
         }
@@ -143,19 +139,17 @@ namespace WebAPI.Controllers
         {
             DeleteBookCommand command = new DeleteBookCommand(_context);
 
-            try
-            {
-                command.BookId = id;
-                
-                DeleteBookCommandValidator validator = new DeleteBookCommandValidator();
-                validator.ValidateAndThrow(command);
+            command.BookId = id;
 
-                command.Handle();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            DeleteBookCommandValidator validator = new DeleteBookCommandValidator();
+            validator.ValidateAndThrow(command);
+
+            command.Handle();
+
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
             return Ok();
         }
     }
